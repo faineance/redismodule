@@ -3,8 +3,8 @@ use libc::{c_int, c_uint};
 use std::f32;
 pub const REDISMODULE_APIVER_1: c_int = 1;
 
-
-#[derive(Debug)]
+#[repr(C)]
+#[derive(Debug,PartialEq)]
 pub enum Status {
     Ok = 0,
     Err = 1,
@@ -72,15 +72,15 @@ bitflags! {
 pub const REDISMODULE_POSITIVE_INFINITE: f32 = f32::INFINITY;
 pub const REDISMODULE_NEGATIVE_INFINITE: f32 = f32::NEG_INFINITY;
 
-pub type mstime_t = ::std::os::raw::c_longlong;
-
 #[repr(C)]
 #[derive(Debug, Copy)]
 pub struct RedisModuleCtx {
     pub _address: u8,
 }
 impl Clone for RedisModuleCtx {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -88,7 +88,9 @@ pub struct RedisModuleKey {
     pub _address: u8,
 }
 impl Clone for RedisModuleKey {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -96,7 +98,9 @@ pub struct RedisModuleString {
     pub _address: u8,
 }
 impl Clone for RedisModuleString {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -104,7 +108,9 @@ pub struct RedisModuleCallReply {
     pub _address: u8,
 }
 impl Clone for RedisModuleCallReply {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -112,7 +118,9 @@ pub struct RedisModuleIO {
     pub _address: u8,
 }
 impl Clone for RedisModuleIO {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -120,7 +128,9 @@ pub struct RedisModuleType {
     pub _address: u8,
 }
 impl Clone for RedisModuleType {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -128,7 +138,9 @@ pub struct RedisModuleDigest {
     pub _address: u8,
 }
 impl Clone for RedisModuleDigest {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 #[repr(C)]
 #[derive(Debug, Copy)]
@@ -136,38 +148,34 @@ pub struct RedisModuleBlockedClient {
     pub _address: u8,
 }
 impl Clone for RedisModuleBlockedClient {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 pub type RedisModuleCmdFunc =
     ::std::option::Option<unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
-                                               argv:
-                                                   *mut *mut RedisModuleString,
-                                               argc: ::std::os::raw::c_int)
-                              -> ::std::os::raw::c_int>;
+                                                 argv: *mut *mut RedisModuleString,
+                                                 argc: ::std::os::raw::c_int)
+                                                 -> ::std::os::raw::c_int>;
 pub type RedisModuleTypeLoadFunc =
     ::std::option::Option<unsafe extern "C" fn(rdb: *mut RedisModuleIO,
-                                               encver: ::std::os::raw::c_int)
-                              -> *mut ::std::os::raw::c_void>;
+                                                 encver: ::std::os::raw::c_int)
+                                                 -> *mut ::std::os::raw::c_void>;
 pub type RedisModuleTypeSaveFunc =
     ::std::option::Option<unsafe extern "C" fn(rdb: *mut RedisModuleIO,
-                                               value:
-                                                   *mut ::std::os::raw::c_void)>;
+                                                 value: *mut ::std::os::raw::c_void)>;
 pub type RedisModuleTypeRewriteFunc =
     ::std::option::Option<unsafe extern "C" fn(aof: *mut RedisModuleIO,
-                                               key: *mut RedisModuleString,
-                                               value:
-                                                   *mut ::std::os::raw::c_void)>;
+                                                 key: *mut RedisModuleString,
+                                                 value: *mut ::std::os::raw::c_void)>;
 pub type RedisModuleTypeMemUsageFunc =
-    ::std::option::Option<unsafe extern "C" fn(value:
-                                                   *mut ::std::os::raw::c_void)
-                              -> ::std::os::raw::c_ulong>;
+    ::std::option::Option<unsafe extern "C" fn(value: *mut ::std::os::raw::c_void)
+                                                 -> ::std::os::raw::c_ulong>;
 pub type RedisModuleTypeDigestFunc =
     ::std::option::Option<unsafe extern "C" fn(digest: *mut RedisModuleDigest,
-                                               value:
-                                                   *mut ::std::os::raw::c_void)>;
+                                                 value: *mut ::std::os::raw::c_void)>;
 pub type RedisModuleTypeFreeFunc =
-    ::std::option::Option<unsafe extern "C" fn(value:
-                                                   *mut ::std::os::raw::c_void)>;
+    ::std::option::Option<unsafe extern "C" fn(value: *mut ::std::os::raw::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy)]
 pub struct RedisModuleTypeMethods {
@@ -181,11 +189,13 @@ pub struct RedisModuleTypeMethods {
 }
 #[test]
 fn bindgen_test_layout_RedisModuleTypeMethods() {
-    assert_eq!(::std::mem::size_of::<RedisModuleTypeMethods>() , 56usize);
-    assert_eq!(::std::mem::align_of::<RedisModuleTypeMethods>() , 8usize);
+    assert_eq!(::std::mem::size_of::<RedisModuleTypeMethods>(), 56usize);
+    assert_eq!(::std::mem::align_of::<RedisModuleTypeMethods>(), 8usize);
 }
 impl Clone for RedisModuleTypeMethods {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 extern "C" {
     #[link_name = "RedisModule_Alloc"]
@@ -632,7 +642,7 @@ extern "C" {
     pub static mut RedisModule_SetExpire:
                ::std::option::Option<unsafe extern "C" fn(key:
                                                               *mut RedisModuleKey,
-                                                          expire: mstime_t)
+                                                          expire: ::std::os::raw::c_longlong)
                                          -> ::std::os::raw::c_int>;
 }
 extern "C" {
@@ -1063,10 +1073,10 @@ extern "C" {
 }
 extern "C" {
     pub fn Export_RedisModule_Init(ctx: *mut RedisModuleCtx,
-                            name: *const ::std::os::raw::c_char,
-                            ver: ::std::os::raw::c_int,
-                            apiver: ::std::os::raw::c_int)
-     -> ::std::os::raw::c_int;
+                                   name: *const ::std::os::raw::c_char,
+                                   ver: ::std::os::raw::c_int,
+                                   apiver: ::std::os::raw::c_int)
+                                   -> Status;
 }
 
 
@@ -1074,6 +1084,5 @@ extern "C" {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn it_works() {
-    }
+    fn it_works() {}
 }
