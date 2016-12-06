@@ -1,7 +1,7 @@
 
 use libc::{c_int, c_uint};
 use std::f32;
-pub const REDISMODULE_APIVER_1: c_uint = 1;
+pub const REDISMODULE_APIVER_1: c_int = 1;
 
 
 #[derive(Debug)]
@@ -1062,7 +1062,7 @@ extern "C" {
                                          -> ::std::os::raw::c_longlong>;
 }
 extern "C" {
-    pub fn RedisModule_Init(ctx: *mut RedisModuleCtx,
+    pub fn Export_RedisModule_Init(ctx: *mut RedisModuleCtx,
                             name: *const ::std::os::raw::c_char,
                             ver: ::std::os::raw::c_int,
                             apiver: ::std::os::raw::c_int)
