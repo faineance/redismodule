@@ -1,7 +1,7 @@
 [package]
 description = "redismodule"
 name = "redismodule"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["faineance <faineance@users.noreply.github.com>"]
 license = "MIT"
 
