@@ -2,6 +2,7 @@
 use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;
 pub const REDISMODULE_APIVER_1: c_int = 1;
+use std::mem;
 
 #[repr(C)]
 #[derive(Debug,PartialEq)]
@@ -210,11 +211,11 @@ extern "C" {
     #[link_name = "RedisModule_Strdup"]
     pub static mut RedisModule_Strdup: unsafe extern "C" fn(str: *const c_char) -> *mut c_char;
 }
-extern "C" {
-    #[link_name = "RedisModule_GetApi"]
-    pub static mut RedisModule_GetApi: unsafe extern "C" fn(arg1: *const c_char, arg2: *mut c_void)
-                                                            -> Status;
-}
+// extern "C" {
+//     #[link_name = "RedisModule_GetApi"]
+//     pub static mut RedisModule_GetApi: unsafe extern "C" fn(arg1: *const c_char, arg2: *mut c_void)
+//                                                             -> Status;
+// }
 extern "C" {
     #[link_name = "RedisModule_CreateCommand"]
     pub static mut RedisModule_CreateCommand: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
@@ -225,6 +226,19 @@ extern "C" {
                                                                    lastkey: c_int,
                                                                    keystep: c_int)
                                                                    -> Status;
+}
+extern "C" {
+    #[link_name = "RedisModule_SetModuleAttribs"]
+    pub static mut RedisModule_SetModuleAttribs:
+              unsafe extern "C" fn(ctx:
+                                                              *mut RedisModuleCtx,
+                                                          name:
+                                                              *const ::std::os::raw::c_char,
+                                                          ver:
+                                                              ::std::os::raw::c_int,
+                                                          apiver:
+                                                              ::std::os::raw::c_int)
+                                         -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_WrongArity"]
@@ -623,8 +637,7 @@ extern "C" {
 extern "C" {
     #[link_name = "RedisModule_IsKeysPositionRequest"]
     pub static mut RedisModule_IsKeysPositionRequest:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
+               unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
                                          -> c_int;
 }
 extern "C" {
@@ -804,22 +817,19 @@ extern "C" {
 extern "C" {
     #[link_name = "RedisModule_IsBlockedReplyRequest"]
     pub static mut RedisModule_IsBlockedReplyRequest:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
+               unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
                                          -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_IsBlockedTimeoutRequest"]
     pub static mut RedisModule_IsBlockedTimeoutRequest:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
+               unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
                                          -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_GetBlockedClientPrivateData"]
     pub static mut RedisModule_GetBlockedClientPrivateData:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
+               unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
                                          -> *mut c_void;
 }
 extern "C" {
@@ -840,6 +850,119 @@ extern "C" {
 }
 
 
+
+pub extern "C" fn RedisModule_Init(ctx: *mut RedisModuleCtx,
+                                   name: *const c_char,
+                                   ver: c_int,
+                                   apiver: c_int)
+                                   -> Status {
+    // held together with duct tape
+    unsafe {
+        let RedisModule_GetApi: fn(arg1: *const c_char, arg2: *mut *mut c_void) -> Status =
+            mem::transmute(*(ctx as *mut *mut c_void));
+        macro_rules! getapi {
+            ($name:ident) => ( RedisModule_GetApi("$name\0".as_ptr() as *const i8, mem::transmute(&$name)););
+        }
+        getapi!(RedisModule_Alloc);
+        getapi!(RedisModule_Alloc);
+        getapi!(RedisModule_Calloc);
+        getapi!(RedisModule_Free);
+        getapi!(RedisModule_Realloc);
+        getapi!(RedisModule_Strdup);
+        getapi!(RedisModule_CreateCommand);
+        getapi!(RedisModule_SetModuleAttribs);
+        getapi!(RedisModule_WrongArity);
+        getapi!(RedisModule_ReplyWithLongLong);
+        getapi!(RedisModule_ReplyWithError);
+        getapi!(RedisModule_ReplyWithSimpleString);
+        getapi!(RedisModule_ReplyWithArray);
+        getapi!(RedisModule_ReplySetArrayLength);
+        getapi!(RedisModule_ReplyWithStringBuffer);
+        getapi!(RedisModule_ReplyWithString);
+        getapi!(RedisModule_ReplyWithNull);
+        getapi!(RedisModule_ReplyWithCallReply);
+        getapi!(RedisModule_ReplyWithDouble);
+        getapi!(RedisModule_ReplySetArrayLength);
+        getapi!(RedisModule_GetSelectedDb);
+        getapi!(RedisModule_SelectDb);
+        getapi!(RedisModule_OpenKey);
+        getapi!(RedisModule_CloseKey);
+        getapi!(RedisModule_KeyType);
+        getapi!(RedisModule_ValueLength);
+        getapi!(RedisModule_ListPush);
+        getapi!(RedisModule_ListPop);
+        getapi!(RedisModule_StringToLongLong);
+        getapi!(RedisModule_StringToDouble);
+        getapi!(RedisModule_Call);
+        getapi!(RedisModule_CallReplyProto);
+        getapi!(RedisModule_FreeCallReply);
+        getapi!(RedisModule_CallReplyInteger);
+        getapi!(RedisModule_CallReplyType);
+        getapi!(RedisModule_CallReplyLength);
+        getapi!(RedisModule_CallReplyArrayElement);
+        getapi!(RedisModule_CallReplyStringPtr);
+        getapi!(RedisModule_CreateStringFromCallReply);
+        getapi!(RedisModule_CreateString);
+        getapi!(RedisModule_CreateStringFromLongLong);
+        getapi!(RedisModule_CreateStringFromString);
+        getapi!(RedisModule_CreateStringPrintf);
+        getapi!(RedisModule_FreeString);
+        getapi!(RedisModule_StringPtrLen);
+        getapi!(RedisModule_AutoMemory);
+        getapi!(RedisModule_Replicate);
+        getapi!(RedisModule_ReplicateVerbatim);
+        getapi!(RedisModule_DeleteKey);
+        getapi!(RedisModule_StringSet);
+        getapi!(RedisModule_StringDMA);
+        getapi!(RedisModule_StringTruncate);
+        getapi!(RedisModule_GetExpire);
+        getapi!(RedisModule_SetExpire);
+        getapi!(RedisModule_ZsetAdd);
+        getapi!(RedisModule_ZsetIncrby);
+        getapi!(RedisModule_ZsetScore);
+        getapi!(RedisModule_ZsetRem);
+        getapi!(RedisModule_ZsetRangeStop);
+        getapi!(RedisModule_ZsetFirstInScoreRange);
+        getapi!(RedisModule_ZsetLastInScoreRange);
+        getapi!(RedisModule_ZsetFirstInLexRange);
+        getapi!(RedisModule_ZsetLastInLexRange);
+        getapi!(RedisModule_ZsetRangeCurrentElement);
+        getapi!(RedisModule_ZsetRangeNext);
+        getapi!(RedisModule_ZsetRangePrev);
+        getapi!(RedisModule_ZsetRangeEndReached);
+        getapi!(RedisModule_HashSet);
+        getapi!(RedisModule_HashGet);
+        getapi!(RedisModule_IsKeysPositionRequest);
+        getapi!(RedisModule_KeyAtPos);
+        getapi!(RedisModule_GetClientId);
+        getapi!(RedisModule_PoolAlloc);
+        getapi!(RedisModule_CreateDataType);
+        getapi!(RedisModule_ModuleTypeSetValue);
+        getapi!(RedisModule_ModuleTypeGetType);
+        getapi!(RedisModule_ModuleTypeGetValue);
+        getapi!(RedisModule_SaveUnsigned);
+        getapi!(RedisModule_LoadUnsigned);
+        getapi!(RedisModule_SaveSigned);
+        getapi!(RedisModule_LoadSigned);
+        getapi!(RedisModule_SaveString);
+        getapi!(RedisModule_SaveStringBuffer);
+        getapi!(RedisModule_LoadString);
+        getapi!(RedisModule_LoadStringBuffer);
+        getapi!(RedisModule_SaveDouble);
+        getapi!(RedisModule_LoadDouble);
+        getapi!(RedisModule_SaveFloat);
+        getapi!(RedisModule_LoadFloat);
+        getapi!(RedisModule_EmitAOF);
+        getapi!(RedisModule_Log);
+        getapi!(RedisModule_LogIOError);
+        getapi!(RedisModule_StringAppendBuffer);
+        getapi!(RedisModule_RetainString);
+        getapi!(RedisModule_StringCompare);
+        getapi!(RedisModule_GetContextFromIO);
+        RedisModule_SetModuleAttribs(ctx, name, ver, apiver);
+        return Status::Ok;
+    }
+}
 
 #[cfg(test)]
 mod tests {
