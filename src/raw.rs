@@ -153,10 +153,10 @@ impl Clone for RedisModuleBlockedClient {
     }
 }
 pub type RedisModuleCmdFunc =
-    ::std::option::Option<unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+    unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
                                                  argv: *mut *mut RedisModuleString,
                                                  argc: ::std::os::raw::c_int)
-                                                 -> ::std::os::raw::c_int>;
+                                                 -> Status;
 pub type RedisModuleTypeLoadFunc =
     ::std::option::Option<unsafe extern "C" fn(rdb: *mut RedisModuleIO,
                                                  encver: ::std::os::raw::c_int)
@@ -243,7 +243,7 @@ extern "C" {
 extern "C" {
     #[link_name = "RedisModule_CreateCommand"]
     pub static mut RedisModule_CreateCommand:
-               ::std::option::Option<unsafe extern "C" fn(ctx:
+               unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx,
                                                           name:
                                                               *const ::std::os::raw::c_char,
@@ -257,7 +257,7 @@ extern "C" {
                                                               ::std::os::raw::c_int,
                                                           keystep:
                                                               ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int>;
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_SetModuleAttribs"]
