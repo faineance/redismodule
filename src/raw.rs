@@ -1,5 +1,5 @@
 
-use libc::{c_int, c_uint};
+use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;
 pub const REDISMODULE_APIVER_1: c_int = 1;
 
@@ -22,7 +22,7 @@ pub enum ListPos {
     Head = 0,
     Tail = 1,
 }
-
+#[repr(C)]
 #[derive(Debug)]
 pub enum KeyType {
     Empty = 0,
@@ -34,6 +34,7 @@ pub enum KeyType {
     Module = 6,
 }
 
+#[repr(C)]
 #[derive(Debug)]
 pub enum ReplyType {
     Unknown = -1,
@@ -152,30 +153,21 @@ impl Clone for RedisModuleBlockedClient {
         *self
     }
 }
-pub type RedisModuleCmdFunc =
-    unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
-                                                 argv: *mut *mut RedisModuleString,
-                                                 argc: ::std::os::raw::c_int)
-                                                 -> Status;
-pub type RedisModuleTypeLoadFunc =
-    unsafe extern "C" fn(rdb: *mut RedisModuleIO,
-                                                 encver: ::std::os::raw::c_int)
-                                                 -> *mut ::std::os::raw::c_void;
-pub type RedisModuleTypeSaveFunc =
-    unsafe extern "C" fn(rdb: *mut RedisModuleIO,
-                                                 value: *mut ::std::os::raw::c_void);
-pub type RedisModuleTypeRewriteFunc =
-    unsafe extern "C" fn(aof: *mut RedisModuleIO,
-                                                 key: *mut RedisModuleString,
-                                                 value: *mut ::std::os::raw::c_void);
-pub type RedisModuleTypeMemUsageFunc =
-    unsafe extern "C" fn(value: *mut ::std::os::raw::c_void)
-                                                 -> ::std::os::raw::c_ulong;
-pub type RedisModuleTypeDigestFunc =
-    unsafe extern "C" fn(digest: *mut RedisModuleDigest,
-                                                 value: *mut ::std::os::raw::c_void);
-pub type RedisModuleTypeFreeFunc =
-    unsafe extern "C" fn(value: *mut ::std::os::raw::c_void);
+pub type RedisModuleCmdFunc = unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                   argv: *mut *mut RedisModuleString,
+                                                   argc: c_int)
+                                                   -> Status;
+pub type RedisModuleTypeLoadFunc = unsafe extern "C" fn(rdb: *mut RedisModuleIO, encver: c_int)
+                                                        -> *mut c_void;
+pub type RedisModuleTypeSaveFunc = unsafe extern "C" fn(rdb: *mut RedisModuleIO,
+                                                        value: *mut c_void);
+pub type RedisModuleTypeRewriteFunc = unsafe extern "C" fn(aof: *mut RedisModuleIO,
+                                                           key: *mut RedisModuleString,
+                                                           value: *mut c_void);
+pub type RedisModuleTypeMemUsageFunc = unsafe extern "C" fn(value: *mut c_void) -> c_ulong;
+pub type RedisModuleTypeDigestFunc = unsafe extern "C" fn(digest: *mut RedisModuleDigest,
+                                                          value: *mut c_void);
+pub type RedisModuleTypeFreeFunc = unsafe extern "C" fn(value: *mut c_void);
 #[repr(C)]
 #[derive(Debug, Copy)]
 pub struct RedisModuleTypeMethods {
@@ -197,235 +189,152 @@ impl Clone for RedisModuleTypeMethods {
         *self
     }
 }
+#[link(name = "redismodule")]
 extern "C" {
-    #[link_name = "RedisModule_Alloc"]
-    pub static mut RedisModule_Alloc:
-               unsafe extern "C" fn(bytes: usize)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_Alloc: unsafe extern "C" fn(bytes: usize) -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_Realloc"]
-    pub static mut RedisModule_Realloc:
-               unsafe extern "C" fn(ptr:
-                                                              *mut ::std::os::raw::c_void,
-                                                          bytes: usize)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_Realloc: unsafe extern "C" fn(ptr: *mut c_void, bytes: usize)
+                                                             -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_Free"]
-    pub static mut RedisModule_Free:
-               unsafe extern "C" fn(ptr:
-                                                              *mut ::std::os::raw::c_void);
+    pub static mut RedisModule_Free: unsafe extern "C" fn(ptr: *mut c_void);
 }
 extern "C" {
     #[link_name = "RedisModule_Calloc"]
-    pub static mut RedisModule_Calloc:
-               unsafe extern "C" fn(nmemb: usize,
-                                                          size: usize)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_Calloc: unsafe extern "C" fn(nmemb: usize, size: usize) -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_Strdup"]
-    pub static mut RedisModule_Strdup:
-               unsafe extern "C" fn(str:
-                                                              *const ::std::os::raw::c_char)
-                                         -> *mut ::std::os::raw::c_char;
+    pub static mut RedisModule_Strdup: unsafe extern "C" fn(str: *const c_char) -> *mut c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_GetApi"]
-    pub static mut RedisModule_GetApi:
-               unsafe extern "C" fn(arg1:
-                                                              *const ::std::os::raw::c_char,
-                                                          arg2:
-                                                              *mut ::std::os::raw::c_void)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_GetApi: unsafe extern "C" fn(arg1: *const c_char, arg2: *mut c_void)
+                                                            -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_CreateCommand"]
-    pub static mut RedisModule_CreateCommand:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          name:
-                                                              *const ::std::os::raw::c_char,
-                                                          cmdfunc:
-                                                              RedisModuleCmdFunc,
-                                                          strflags:
-                                                              *const ::std::os::raw::c_char,
-                                                          firstkey:
-                                                              ::std::os::raw::c_int,
-                                                          lastkey:
-                                                              ::std::os::raw::c_int,
-                                                          keystep:
-                                                              ::std::os::raw::c_int)
-                                         -> Status;
-}
-extern "C" {
-    #[link_name = "RedisModule_SetModuleAttribs"]
-    pub static mut RedisModule_SetModuleAttribs:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          name:
-                                                              *const ::std::os::raw::c_char,
-                                                          ver:
-                                                              ::std::os::raw::c_int,
-                                                          apiver:
-                                                              ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_CreateCommand: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                   name: *const c_char,
+                                                                   cmdfunc: RedisModuleCmdFunc,
+                                                                   strflags: *const c_char,
+                                                                   firstkey: c_int,
+                                                                   lastkey: c_int,
+                                                                   keystep: c_int)
+                                                                   -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_WrongArity"]
-    pub static mut RedisModule_WrongArity:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
-                                         -> Status;
+    pub static mut RedisModule_WrongArity: unsafe extern "C" fn(ctx: *mut RedisModuleCtx) -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithLongLong"]
-    pub static mut RedisModule_ReplyWithLongLong:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          ll:
-                                                              ::std::os::raw::c_longlong)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplyWithLongLong: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                       ll: c_longlong)
+                                                                       -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_GetSelectedDb"]
-    pub static mut RedisModule_GetSelectedDb:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_GetSelectedDb: unsafe extern "C" fn(ctx: *mut RedisModuleCtx) -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_SelectDb"]
-    pub static mut RedisModule_SelectDb:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          newid:
-                                                              ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_SelectDb: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                              newid: c_int)
+                                                              -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_OpenKey"]
-    pub static mut RedisModule_OpenKey:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          keyname:
-                                                              *mut RedisModuleString,
-                                                          mode:
-                                                              ::std::os::raw::c_int)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_OpenKey: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                             keyname: *mut RedisModuleString,
+                                                             mode: c_int)
+                                                             -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_CloseKey"]
-    pub static mut RedisModule_CloseKey:
-               unsafe extern "C" fn(kp:
-                                                              *mut RedisModuleKey);
+    pub static mut RedisModule_CloseKey: unsafe extern "C" fn(kp: *mut RedisModuleKey);
 }
 extern "C" {
     #[link_name = "RedisModule_KeyType"]
-    pub static mut RedisModule_KeyType:
-               unsafe extern "C" fn(kp:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_KeyType: unsafe extern "C" fn(kp: *mut RedisModuleKey) -> KeyType;
 }
 extern "C" {
     #[link_name = "RedisModule_ValueLength"]
-    pub static mut RedisModule_ValueLength:
-               unsafe extern "C" fn(kp:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_ulong;
+    pub static mut RedisModule_ValueLength: unsafe extern "C" fn(kp: *mut RedisModuleKey) -> c_ulong;
 }
 extern "C" {
     #[link_name = "RedisModule_ListPush"]
-    pub static mut RedisModule_ListPush:
-               unsafe extern "C" fn(kp:
-                                                              *mut RedisModuleKey,
-                                                          where_:
-                                                              ::std::os::raw::c_int,
-                                                          ele:
-                                                              *mut RedisModuleString)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ListPush: unsafe extern "C" fn(kp: *mut RedisModuleKey,
+                                                              where_: c_int,
+                                                              ele: *mut RedisModuleString)
+                                                              -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ListPop"]
-    pub static mut RedisModule_ListPop:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          where_:
-                                                              ::std::os::raw::c_int)
-                                         -> *mut RedisModuleString;
+    pub static mut RedisModule_ListPop: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                             where_: c_int)
+                                                             -> *mut RedisModuleString;
 }
 extern "C" {
     #[link_name = "RedisModule_Call"]
-    pub static mut RedisModule_Call:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          cmdname:
-                                                              *const ::std::os::raw::c_char,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...)
-                                         -> *mut RedisModuleCallReply;
+    pub static mut RedisModule_Call: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                          cmdname: *const c_char,
+                                                          fmt: *const c_char,
+                                                          ...)
+                                                          -> *mut RedisModuleCallReply;
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyProto"]
     pub static mut RedisModule_CallReplyProto:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply,
+               unsafe extern "C" fn(reply: *mut RedisModuleCallReply,
                                                           len: *mut usize)
-                                         -> *const ::std::os::raw::c_char;
+                                         -> *const c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_FreeCallReply"]
     pub static mut RedisModule_FreeCallReply:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply);
+               unsafe extern "C" fn(reply: *mut RedisModuleCallReply);
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyType"]
     pub static mut RedisModule_CallReplyType:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply)
-                                         -> ::std::os::raw::c_int;
+               unsafe extern "C" fn(reply: *mut RedisModuleCallReply)
+                                         -> ReplyType;
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyInteger"]
     pub static mut RedisModule_CallReplyInteger:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply)
-                                         -> ::std::os::raw::c_longlong;
+               unsafe extern "C" fn(reply:*mut RedisModuleCallReply) -> c_longlong;
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyLength"]
     pub static mut RedisModule_CallReplyLength:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply)
-                                         -> ::std::os::raw::c_ulong;
+               unsafe extern "C" fn(reply: *mut RedisModuleCallReply)
+                                         -> c_ulong;
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyArrayElement"]
     pub static mut RedisModule_CallReplyArrayElement:
-               unsafe extern "C" fn(reply:
-                                                              *mut RedisModuleCallReply,
+               unsafe extern "C" fn(reply: *mut RedisModuleCallReply,
                                                           idx: usize)
                                          -> *mut RedisModuleCallReply;
 }
 extern "C" {
     #[link_name = "RedisModule_CreateString"]
-    pub static mut RedisModule_CreateString:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          ptr:
-                                                              *const ::std::os::raw::c_char,
-                                                          len: usize)
-                                         -> *mut RedisModuleString;
+    pub static mut RedisModule_CreateString: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                  ptr: *const c_char,
+                                                                  len: usize)
+                                                                  -> *mut RedisModuleString;
 }
 extern "C" {
     #[link_name = "RedisModule_CreateStringFromLongLong"]
     pub static mut RedisModule_CreateStringFromLongLong:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
+               unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
                                                           ll:
-                                                              ::std::os::raw::c_longlong)
+                                                              c_longlong)
                                          -> *mut RedisModuleString;
 }
 extern "C" {
@@ -439,37 +348,27 @@ extern "C" {
 }
 extern "C" {
     #[link_name = "RedisModule_CreateStringPrintf"]
-    pub static mut RedisModule_CreateStringPrintf:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...)
-                                         -> *mut RedisModuleString;
+    pub static mut RedisModule_CreateStringPrintf: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                        fmt: *const c_char,
+                                                                        ...)
+                                                                        -> *mut RedisModuleString;
 }
 extern "C" {
     #[link_name = "RedisModule_FreeString"]
-    pub static mut RedisModule_FreeString:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          str:
-                                                              *mut RedisModuleString);
+    pub static mut RedisModule_FreeString: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                str: *mut RedisModuleString);
 }
 extern "C" {
     #[link_name = "RedisModule_StringPtrLen"]
-    pub static mut RedisModule_StringPtrLen:
-               unsafe extern "C" fn(str:
-                                                              *const RedisModuleString,
-                                                          len: *mut usize)
-                                         -> *const ::std::os::raw::c_char;
+    pub static mut RedisModule_StringPtrLen: unsafe extern "C" fn(str: *const RedisModuleString,
+                                                                  len: *mut usize)
+                                                                  -> *const c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithError"]
-    pub static mut RedisModule_ReplyWithError:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          err:
-                                                              *const ::std::os::raw::c_char)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplyWithError: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                    err: *const c_char)
+                                                                    -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithSimpleString"]
@@ -477,25 +376,19 @@ extern "C" {
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx,
                                                           msg:
-                                                              *const ::std::os::raw::c_char)
-                                         -> ::std::os::raw::c_int;
+                                                              *const c_char)
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithArray"]
-    pub static mut RedisModule_ReplyWithArray:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          len:
-                                                              ::std::os::raw::c_long)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplyWithArray: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                    len: c_long)
+                                                                    -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplySetArrayLength"]
-    pub static mut RedisModule_ReplySetArrayLength:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          len:
-                                                              ::std::os::raw::c_long);
+    pub static mut RedisModule_ReplySetArrayLength: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                         len: c_long);
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithStringBuffer"]
@@ -503,33 +396,26 @@ extern "C" {
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx,
                                                           buf:
-                                                              *const ::std::os::raw::c_char,
+                                                              *const c_char,
                                                           len: usize)
-                                         -> ::std::os::raw::c_int;
-}
-extern "C" {
-    #[link_name = "RedisModule_ReplyWithString"]
-    pub static mut RedisModule_ReplyWithString:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          str:
-                                                              *mut RedisModuleString)
                                          -> Status;
 }
 extern "C" {
+    #[link_name = "RedisModule_ReplyWithString"]
+    pub static mut RedisModule_ReplyWithString: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                     str: *mut RedisModuleString)
+                                                                     -> Status;
+}
+extern "C" {
     #[link_name = "RedisModule_ReplyWithNull"]
-    pub static mut RedisModule_ReplyWithNull:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplyWithNull: unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
+                                                                   -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithDouble"]
-    pub static mut RedisModule_ReplyWithDouble:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          d: f64)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplyWithDouble: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                     d: f64)
+                                                                     -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplyWithCallReply"]
@@ -538,7 +424,7 @@ extern "C" {
                                                               *mut RedisModuleCtx,
                                                           reply:
                                                               *mut RedisModuleCallReply)
-                                         -> ::std::os::raw::c_int;
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_StringToLongLong"]
@@ -546,40 +432,31 @@ extern "C" {
                unsafe extern "C" fn(str:
                                                               *const RedisModuleString,
                                                           ll:
-                                                              *mut ::std::os::raw::c_longlong)
-                                         -> ::std::os::raw::c_int;
+                                                              *mut c_longlong)
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_StringToDouble"]
-    pub static mut RedisModule_StringToDouble:
-               unsafe extern "C" fn(str:
-                                                              *const RedisModuleString,
-                                                          d: *mut f64)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_StringToDouble: unsafe extern "C" fn(str: *const RedisModuleString,
+                                                                    d: *mut f64)
+                                                                    -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_AutoMemory"]
-    pub static mut RedisModule_AutoMemory:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx);
+    pub static mut RedisModule_AutoMemory: unsafe extern "C" fn(ctx: *mut RedisModuleCtx);
 }
 extern "C" {
     #[link_name = "RedisModule_Replicate"]
-    pub static mut RedisModule_Replicate:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          cmdname:
-                                                              *const ::std::os::raw::c_char,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_Replicate: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                               cmdname: *const c_char,
+                                                               fmt: *const c_char,
+                                                               ...)
+                                                               -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ReplicateVerbatim"]
-    pub static mut RedisModule_ReplicateVerbatim:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ReplicateVerbatim: unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
+                                                                       -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_CallReplyStringPtr"]
@@ -587,7 +464,7 @@ extern "C" {
                unsafe extern "C" fn(reply:
                                                               *mut RedisModuleCallReply,
                                                           len: *mut usize)
-                                         -> *const ::std::os::raw::c_char;
+                                         -> *const c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_CreateStringFromCallReply"]
@@ -598,104 +475,72 @@ extern "C" {
 }
 extern "C" {
     #[link_name = "RedisModule_DeleteKey"]
-    pub static mut RedisModule_DeleteKey:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_DeleteKey: unsafe extern "C" fn(key: *mut RedisModuleKey) -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_StringSet"]
-    pub static mut RedisModule_StringSet:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          str:
-                                                              *mut RedisModuleString)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_StringSet: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                               str: *mut RedisModuleString)
+                                                               -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_StringDMA"]
-    pub static mut RedisModule_StringDMA:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          len: *mut usize,
-                                                          mode:
-                                                              ::std::os::raw::c_int)
-                                         -> *mut ::std::os::raw::c_char;
+    pub static mut RedisModule_StringDMA: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                               len: *mut usize,
+                                                               mode: c_int)
+                                                               -> *mut c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_StringTruncate"]
-    pub static mut RedisModule_StringTruncate:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          newlen: usize)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_StringTruncate: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                                    newlen: usize)
+                                                                    -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_GetExpire"]
-    pub static mut RedisModule_GetExpire:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_longlong;
+    pub static mut RedisModule_GetExpire: unsafe extern "C" fn(key: *mut RedisModuleKey)
+                                                               -> c_longlong;
 }
 extern "C" {
     #[link_name = "RedisModule_SetExpire"]
-    pub static mut RedisModule_SetExpire:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          expire: ::std::os::raw::c_longlong)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_SetExpire: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                               expire: c_longlong)
+                                                               -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetAdd"]
-    pub static mut RedisModule_ZsetAdd:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          score: f64,
-                                                          ele:
-                                                              *mut RedisModuleString,
-                                                          flagsptr:
-                                                              *mut ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetAdd: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                             score: f64,
+                                                             ele: *mut RedisModuleString,
+                                                             flagsptr: *mut c_int)
+                                                             -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetIncrby"]
-    pub static mut RedisModule_ZsetIncrby:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          score: f64,
-                                                          ele:
-                                                              *mut RedisModuleString,
-                                                          flagsptr:
-                                                              *mut ::std::os::raw::c_int,
-                                                          newscore: *mut f64)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetIncrby: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                                score: f64,
+                                                                ele: *mut RedisModuleString,
+                                                                flagsptr: *mut c_int,
+                                                                newscore: *mut f64)
+                                                                -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetScore"]
-    pub static mut RedisModule_ZsetScore:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          ele:
-                                                              *mut RedisModuleString,
-                                                          score: *mut f64)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetScore: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                               ele: *mut RedisModuleString,
+                                                               score: *mut f64)
+                                                               -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRem"]
-    pub static mut RedisModule_ZsetRem:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          ele:
-                                                              *mut RedisModuleString,
-                                                          deleted:
-                                                              *mut ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetRem: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                             ele: *mut RedisModuleString,
+                                                             deleted: *mut c_int)
+                                                             -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRangeStop"]
-    pub static mut RedisModule_ZsetRangeStop:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey);
+    pub static mut RedisModule_ZsetRangeStop: unsafe extern "C" fn(key: *mut RedisModuleKey);
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetFirstInScoreRange"]
@@ -704,22 +549,19 @@ extern "C" {
                                                               *mut RedisModuleKey,
                                                           min: f64, max: f64,
                                                           minex:
-                                                              ::std::os::raw::c_int,
+                                                              c_int,
                                                           maxex:
-                                                              ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+                                                              c_int)
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetLastInScoreRange"]
-    pub static mut RedisModule_ZsetLastInScoreRange:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          min: f64, max: f64,
-                                                          minex:
-                                                              ::std::os::raw::c_int,
-                                                          maxex:
-                                                              ::std::os::raw::c_int)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetLastInScoreRange: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                                          min: f64,
+                                                                          max: f64,
+                                                                          minex: c_int,
+                                                                          maxex: c_int)
+                                                                          -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetFirstInLexRange"]
@@ -730,7 +572,7 @@ extern "C" {
                                                               *mut RedisModuleString,
                                                           max:
                                                               *mut RedisModuleString)
-                                         -> ::std::os::raw::c_int;
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetLastInLexRange"]
@@ -741,7 +583,7 @@ extern "C" {
                                                               *mut RedisModuleString,
                                                           max:
                                                               *mut RedisModuleString)
-                                         -> ::std::os::raw::c_int;
+                                         -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRangeCurrentElement"]
@@ -753,72 +595,52 @@ extern "C" {
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRangeNext"]
-    pub static mut RedisModule_ZsetRangeNext:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetRangeNext: unsafe extern "C" fn(key: *mut RedisModuleKey) -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRangePrev"]
-    pub static mut RedisModule_ZsetRangePrev:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetRangePrev: unsafe extern "C" fn(key: *mut RedisModuleKey) -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_ZsetRangeEndReached"]
-    pub static mut RedisModule_ZsetRangeEndReached:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ZsetRangeEndReached: unsafe extern "C" fn(key: *mut RedisModuleKey)
+                                                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_HashSet"]
-    pub static mut RedisModule_HashSet:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          flags:
-                                                              ::std::os::raw::c_int, ...)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_HashSet: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                             flags: c_int,
+                                                             ...)
+                                                             -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_HashGet"]
-    pub static mut RedisModule_HashGet:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          flags:
-                                                              ::std::os::raw::c_int, ...)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_HashGet: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                             flags: c_int,
+                                                             ...)
+                                                             -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_IsKeysPositionRequest"]
     pub static mut RedisModule_IsKeysPositionRequest:
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_KeyAtPos"]
-    pub static mut RedisModule_KeyAtPos:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          pos:
-                                                              ::std::os::raw::c_int);
+    pub static mut RedisModule_KeyAtPos: unsafe extern "C" fn(ctx: *mut RedisModuleCtx, pos: c_int);
 }
 extern "C" {
     #[link_name = "RedisModule_GetClientId"]
-    pub static mut RedisModule_GetClientId:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_ulonglong;
+    pub static mut RedisModule_GetClientId: unsafe extern "C" fn(ctx: *mut RedisModuleCtx)
+                                                                 -> c_ulonglong;
 }
 extern "C" {
     #[link_name = "RedisModule_PoolAlloc"]
-    pub static mut RedisModule_PoolAlloc:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          bytes: usize)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_PoolAlloc: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                               bytes: usize)
+                                                               -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_CreateDataType"]
@@ -826,155 +648,105 @@ extern "C" {
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx,
                                                           name:
-                                                              *const ::std::os::raw::c_char,
+                                                              *const c_char,
                                                           encver:
-                                                              ::std::os::raw::c_int,
+                                                              c_int,
                                                           typemethods:
                                                               *mut RedisModuleTypeMethods)
                                          -> *mut RedisModuleType;
 }
 extern "C" {
     #[link_name = "RedisModule_ModuleTypeSetValue"]
-    pub static mut RedisModule_ModuleTypeSetValue:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey,
-                                                          mt:
-                                                              *mut RedisModuleType,
-                                                          value:
-                                                              *mut ::std::os::raw::c_void)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_ModuleTypeSetValue: unsafe extern "C" fn(key: *mut RedisModuleKey,
+                                                                        mt: *mut RedisModuleType,
+                                                                        value: *mut c_void)
+                                                                        -> Status;
 }
 extern "C" {
     #[link_name = "RedisModule_ModuleTypeGetType"]
-    pub static mut RedisModule_ModuleTypeGetType:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> *mut RedisModuleType;
+    pub static mut RedisModule_ModuleTypeGetType: unsafe extern "C" fn(key: *mut RedisModuleKey)
+                                                                       -> *mut RedisModuleType;
 }
 extern "C" {
     #[link_name = "RedisModule_ModuleTypeGetValue"]
-    pub static mut RedisModule_ModuleTypeGetValue:
-               unsafe extern "C" fn(key:
-                                                              *mut RedisModuleKey)
-                                         -> *mut ::std::os::raw::c_void;
+    pub static mut RedisModule_ModuleTypeGetValue: unsafe extern "C" fn(key: *mut RedisModuleKey)
+                                                                        -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_SaveUnsigned"]
-    pub static mut RedisModule_SaveUnsigned:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          value: u64);
+    pub static mut RedisModule_SaveUnsigned: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                                  value: u64);
 }
 extern "C" {
     #[link_name = "RedisModule_LoadUnsigned"]
-    pub static mut RedisModule_LoadUnsigned:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> ::std::os::raw::c_ulong;
+    pub static mut RedisModule_LoadUnsigned: unsafe extern "C" fn(io: *mut RedisModuleIO) -> c_ulong;
 }
 extern "C" {
     #[link_name = "RedisModule_SaveSigned"]
-    pub static mut RedisModule_SaveSigned:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          value: i64);
+    pub static mut RedisModule_SaveSigned: unsafe extern "C" fn(io: *mut RedisModuleIO, value: i64);
 }
 extern "C" {
     #[link_name = "RedisModule_LoadSigned"]
-    pub static mut RedisModule_LoadSigned:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> ::std::os::raw::c_long;
+    pub static mut RedisModule_LoadSigned: unsafe extern "C" fn(io: *mut RedisModuleIO) -> c_long;
 }
 extern "C" {
     #[link_name = "RedisModule_EmitAOF"]
-    pub static mut RedisModule_EmitAOF:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          cmdname:
-                                                              *const ::std::os::raw::c_char,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...);
+    pub static mut RedisModule_EmitAOF: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                             cmdname: *const c_char,
+                                                             fmt: *const c_char,
+                                                             ...);
 }
 extern "C" {
     #[link_name = "RedisModule_SaveString"]
-    pub static mut RedisModule_SaveString:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          s:
-                                                              *mut RedisModuleString);
+    pub static mut RedisModule_SaveString: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                                s: *mut RedisModuleString);
 }
 extern "C" {
     #[link_name = "RedisModule_SaveStringBuffer"]
-    pub static mut RedisModule_SaveStringBuffer:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          str:
-                                                              *const ::std::os::raw::c_char,
-                                                          len: usize);
+    pub static mut RedisModule_SaveStringBuffer: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                                      str: *const c_char,
+                                                                      len: usize);
 }
 extern "C" {
     #[link_name = "RedisModule_LoadString"]
-    pub static mut RedisModule_LoadString:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> *mut RedisModuleString;
+    pub static mut RedisModule_LoadString: unsafe extern "C" fn(io: *mut RedisModuleIO)
+                                                                -> *mut RedisModuleString;
 }
 extern "C" {
     #[link_name = "RedisModule_LoadStringBuffer"]
-    pub static mut RedisModule_LoadStringBuffer:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          lenptr: *mut usize)
-                                         -> *mut ::std::os::raw::c_char;
+    pub static mut RedisModule_LoadStringBuffer: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                                      lenptr: *mut usize)
+                                                                      -> *mut c_char;
 }
 extern "C" {
     #[link_name = "RedisModule_SaveDouble"]
-    pub static mut RedisModule_SaveDouble:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          value: f64);
+    pub static mut RedisModule_SaveDouble: unsafe extern "C" fn(io: *mut RedisModuleIO, value: f64);
 }
 extern "C" {
     #[link_name = "RedisModule_LoadDouble"]
-    pub static mut RedisModule_LoadDouble:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> f64;
+    pub static mut RedisModule_LoadDouble: unsafe extern "C" fn(io: *mut RedisModuleIO) -> f64;
 }
 extern "C" {
     #[link_name = "RedisModule_SaveFloat"]
-    pub static mut RedisModule_SaveFloat:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          value: f32);
+    pub static mut RedisModule_SaveFloat: unsafe extern "C" fn(io: *mut RedisModuleIO, value: f32);
 }
 extern "C" {
     #[link_name = "RedisModule_LoadFloat"]
-    pub static mut RedisModule_LoadFloat:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> f32;
+    pub static mut RedisModule_LoadFloat: unsafe extern "C" fn(io: *mut RedisModuleIO) -> f32;
 }
 extern "C" {
     #[link_name = "RedisModule_Log"]
-    pub static mut RedisModule_Log:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          level:
-                                                              *const ::std::os::raw::c_char,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...);
+    pub static mut RedisModule_Log: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                         level: *const c_char,
+                                                         fmt: *const c_char,
+                                                         ...);
 }
 extern "C" {
     #[link_name = "RedisModule_LogIOError"]
-    pub static mut RedisModule_LogIOError:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO,
-                                                          levelstr:
-                                                              *const ::std::os::raw::c_char,
-                                                          fmt:
-                                                              *const ::std::os::raw::c_char, ...);
+    pub static mut RedisModule_LogIOError: unsafe extern "C" fn(io: *mut RedisModuleIO,
+                                                                levelstr: *const c_char,
+                                                                fmt: *const c_char,
+                                                                ...);
 }
 extern "C" {
     #[link_name = "RedisModule_StringAppendBuffer"]
@@ -984,33 +756,25 @@ extern "C" {
                                                           str:
                                                               *mut RedisModuleString,
                                                           buf:
-                                                              *const ::std::os::raw::c_char,
+                                                              *const c_char,
                                                           len: usize)
-                                         -> ::std::os::raw::c_int;
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_RetainString"]
-    pub static mut RedisModule_RetainString:
-               unsafe extern "C" fn(ctx:
-                                                              *mut RedisModuleCtx,
-                                                          str:
-                                                              *mut RedisModuleString);
+    pub static mut RedisModule_RetainString: unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                                  str: *mut RedisModuleString);
 }
 extern "C" {
     #[link_name = "RedisModule_StringCompare"]
-    pub static mut RedisModule_StringCompare:
-               unsafe extern "C" fn(a:
-                                                              *mut RedisModuleString,
-                                                          b:
-                                                              *mut RedisModuleString)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_StringCompare: unsafe extern "C" fn(a: *mut RedisModuleString,
+                                                                   b: *mut RedisModuleString)
+                                                                   -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_GetContextFromIO"]
-    pub static mut RedisModule_GetContextFromIO:
-               unsafe extern "C" fn(io:
-                                                              *mut RedisModuleIO)
-                                         -> *mut RedisModuleCtx;
+    pub static mut RedisModule_GetContextFromIO: unsafe extern "C" fn(io: *mut RedisModuleIO)
+                                                                      -> *mut RedisModuleCtx;
 }
 extern "C" {
     #[link_name = "RedisModule_BlockClient"]
@@ -1023,9 +787,9 @@ extern "C" {
                                                               RedisModuleCmdFunc,
                                                           free_privdata:
                                                               unsafe extern "C" fn(arg1:
-                                                                                                             *mut ::std::os::raw::c_void),
+                                                                                                             *mut c_void),
                                                           timeout_ms:
-                                                              ::std::os::raw::c_longlong)
+                                                              c_longlong)
                                          -> *mut RedisModuleBlockedClient;
 }
 extern "C" {
@@ -1034,48 +798,44 @@ extern "C" {
                unsafe extern "C" fn(bc:
                                                               *mut RedisModuleBlockedClient,
                                                           privdata:
-                                                              *mut ::std::os::raw::c_void)
-                                         -> ::std::os::raw::c_int;
+                                                              *mut c_void)
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_IsBlockedReplyRequest"]
     pub static mut RedisModule_IsBlockedReplyRequest:
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_IsBlockedTimeoutRequest"]
     pub static mut RedisModule_IsBlockedTimeoutRequest:
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx)
-                                         -> ::std::os::raw::c_int;
+                                         -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_GetBlockedClientPrivateData"]
     pub static mut RedisModule_GetBlockedClientPrivateData:
                unsafe extern "C" fn(ctx:
                                                               *mut RedisModuleCtx)
-                                         -> *mut ::std::os::raw::c_void;
+                                         -> *mut c_void;
 }
 extern "C" {
     #[link_name = "RedisModule_AbortBlock"]
-    pub static mut RedisModule_AbortBlock:
-               unsafe extern "C" fn(bc:
-                                                              *mut RedisModuleBlockedClient)
-                                         -> ::std::os::raw::c_int;
+    pub static mut RedisModule_AbortBlock: unsafe extern "C" fn(bc: *mut RedisModuleBlockedClient)
+                                                                -> c_int;
 }
 extern "C" {
     #[link_name = "RedisModule_Milliseconds"]
-    pub static mut RedisModule_Milliseconds:
-               unsafe extern "C" fn()
-                                         -> ::std::os::raw::c_longlong;
+    pub static mut RedisModule_Milliseconds: unsafe extern "C" fn() -> c_longlong;
 }
 extern "C" {
     pub fn Export_RedisModule_Init(ctx: *mut RedisModuleCtx,
-                                   name: *const ::std::os::raw::c_char,
-                                   ver: ::std::os::raw::c_int,
-                                   apiver: ::std::os::raw::c_int)
+                                   name: *const c_char,
+                                   ver: c_int,
+                                   apiver: c_int)
                                    -> Status;
 }
 
