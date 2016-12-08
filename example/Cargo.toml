@@ -11,7 +11,7 @@ crate-type = ["dylib"]
 
 [dependencies]
 redismodule = { path = "../../redismodule" }
-libc= "*"
+libc = "*"
 
 
 [build-dependencies]
