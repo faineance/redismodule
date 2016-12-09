@@ -10,6 +10,3 @@ libc = "0.2.18"
 bitflags = "0.7"
 
 
-[lib]
-name = "redismodule"
-crate-type = ["dylib"] 

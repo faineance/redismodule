@@ -13,11 +13,9 @@ extern "C" fn echo(ctx: *mut raw::RedisModuleCtx,
         }
 
 
-
         return raw::RedisModule_ReplyWithString(ctx, slice::from_raw_parts(argv, argc as usize)[1]);
     }
 }
 
 REDIS_MODULE!("example", 1, vec![("hehe", echo)]);
-
 
