@@ -11,7 +11,7 @@ pub mod command;
 
 
 #[macro_export]
-macro_rules! REDIS_MODULE (
+macro_rules! redis_module (
     ($name:expr,$module_version:expr, $commands:expr) => (
 
         #[no_mangle]
@@ -21,12 +21,12 @@ macro_rules! REDIS_MODULE (
               if redismodule::raw::RedisModule_Init(ctx,format!("{}\0",$name).as_ptr() as *const i8, $module_version, redismodule::raw::REDISMODULE_APIVER_1) == redismodule::raw::Status::Err {
                   return redismodule::raw::Status::Err;
               }
-              for (name,function) in $commands {
+              for command in $commands {
 
 
                 if redismodule::raw::RedisModule_CreateCommand(ctx,
-                                                            format!("{}\0", name).as_ptr() as *const i8,
-                                                            redismodule::wrap_command(function),
+                                                            format!("{}\0", command.name).as_ptr() as *const i8,
+                                                            command.handler,
                                                             format!("write\0").as_ptr() as *const i8,
                                                             1,
                                                             1,

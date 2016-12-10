@@ -201,7 +201,7 @@ extern "C" {
     static RedisModule_Free: extern "C" fn(ptr: *mut c_void);
     static RedisModule_Calloc: extern "C" fn(nmemb: usize, size: usize) -> *mut c_void;
     static RedisModule_Strdup: extern "C" fn(str: *const c_char) -> *mut c_char;
-    static RedisModule_CreateCommand: extern "C" fn(ctx: *mut RedisModuleCtx,
+    pub static RedisModule_CreateCommand: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                         name: *const c_char,
                                                         cmdfunc: RedisModuleCmdFunc,
                                                         strflags: *const c_char,
@@ -214,7 +214,7 @@ extern "C" {
                                                            ver: c_int,
                                                            apiver: c_int)
                                                            -> c_int;
-    static RedisModule_WrongArity: extern "C" fn(ctx: *mut RedisModuleCtx) -> Status;
+    pub static RedisModule_WrongArity: extern "C" fn(ctx: *mut RedisModuleCtx) -> Status;
     static RedisModule_ReplyWithLongLong: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                             ll: c_longlong)
                                                             -> Status;
@@ -291,7 +291,7 @@ extern "C" {
                                                                 buf: *const c_char,
                                                                 len: usize)
                                                                 -> Status;
-    static RedisModule_ReplyWithString: extern "C" fn(ctx: *mut RedisModuleCtx,
+    pub static RedisModule_ReplyWithString: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                           str: *mut RedisModuleString)
                                                           -> Status;
     static RedisModule_ReplyWithNull: extern "C" fn(ctx: *mut RedisModuleCtx) -> Status;
