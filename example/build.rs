@@ -8,8 +8,9 @@ fn main() {
     // src/redismodule.c is just a stub that includes it and plays a few other
     // tricks that we need to complete the build.
     gcc::Config::new()
-         .file("src/redismodule.c")
+        .file("src/redismodule.c")
         .include("include/")
         .compile("libredismodule.a");
     // The GCC module emits `rustc-link-lib=static=redismodule` for us.
+
 }
