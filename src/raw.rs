@@ -1,3 +1,4 @@
+#![allow(dead_code, non_camel_case_types, non_snake_case)]
 
 use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;
@@ -193,6 +194,7 @@ impl Clone for RedisModuleTypeMethods {
 }
 
 
+#[link(name = "redismodule",kind = "dylib")]
 extern "C" {
     pub static RedisModule_Alloc: extern "C" fn(bytes: usize) -> *mut c_void;
     pub static RedisModule_Realloc: extern "C" fn(ptr: *mut c_void, bytes: usize) -> *mut c_void;
