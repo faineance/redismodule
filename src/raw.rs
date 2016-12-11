@@ -205,7 +205,7 @@ extern "C" {
                                                             msg: *const c_char)
                                                             -> Status;
 
-    static RedisModule_ReplyWithArray: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long) -> Status;
+    pub static RedisModule_ReplyWithArray: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long) -> Status;
 
 
     static RedisModule_ReplySetArrayLength: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long);
