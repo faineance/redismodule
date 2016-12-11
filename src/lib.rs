@@ -7,8 +7,17 @@ use std::slice;
 pub mod raw;
 pub mod command;
 
-
-
+// #[macro_export]
+// macro_rules! command (
+//      ($name:expr) => (
+//         fn $name() {
+//             // match cmd(ctx, &["a"]) {
+//             //     Ok(redisvalue) => raw::Status::Ok,
+//             //     Err(e) => raw::Status::Err,
+//             // }
+//         };
+//      )
+// );
 
 #[macro_export]
 macro_rules! redis_module (
@@ -24,6 +33,7 @@ macro_rules! redis_module (
               for command in $commands {
 
 
+                
                 if redismodule::raw::RedisModule_CreateCommand(ctx,
                                                             format!("{}\0", command.name).as_ptr() as *const i8,
                                                             command.handler,
