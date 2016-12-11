@@ -7,8 +7,7 @@ use redismodule::command::Command;
 
 
 fn echo(ctx: *mut raw::RedisModuleCtx, args: &[&str]) -> RedisResult {
-    println!("asd");
-    return Ok(RedisValue::String(String::from("hehe")));
+    return Ok(RedisValue::Integer(42));
     // return Err("oops");
 }
 

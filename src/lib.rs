@@ -19,12 +19,10 @@ macro_rules! redis_module (
                   return redismodule::raw::Status::Err;
               }
               for command in $commands {
-
-                
                 if redismodule::raw::RedisModule_CreateCommand(ctx,
                                                             format!("{}\0", command.name).as_ptr() as *const i8,
                                                             redismodule::wrap_command(command.handler),
-                                                            format!("write\0").as_ptr() as *const i8,
+                                                            format!("{}\0", command.flags).as_ptr() as *const i8,
                                                             1,
                                                             1,
                                                             1) == redismodule::raw::Status::Err {
@@ -39,32 +37,45 @@ macro_rules! redis_module (
 
 
 
-pub fn wrap_command<F: Fn(*mut raw::RedisModuleCtx, &[&str])-> RedisResult>(command: F)-> raw::RedisModuleCmdFunc {
-    extern "C" fn do_command<F: Fn(*mut raw::RedisModuleCtx, &[&str]) -> RedisResult> (ctx: *mut raw::RedisModuleCtx,
-                                                   argv: *mut *mut raw::RedisModuleString,
-                                                   argc: libc::c_int) -> raw::Status {
+pub fn wrap_command<F: Fn(*mut raw::RedisModuleCtx, &[&str]) -> RedisResult>
+    (command: F)
+     -> raw::RedisModuleCmdFunc {
+    extern "C" fn do_command<F: Fn(*mut raw::RedisModuleCtx, &[&str]) -> RedisResult>
+        (ctx: *mut raw::RedisModuleCtx,
+         argv: *mut *mut raw::RedisModuleString,
+         argc: libc::c_int)
+         -> raw::Status {
         unsafe {
-            let x: *const F = std::mem::transmute(&());
+            let cmd: *const F = std::mem::transmute(&());
             let args = slice::from_raw_parts(argv, argc as usize);
-            // match (*x)(ctx, args) {
-            //     Ok(RedisValue::String(v)) => raw::RedisModule_ReplyWithString(ctx, v.as_ptr()),
-            //     Err(e) => unimplemented!(),
-            // }
-            return raw::RedisModule_ReplyWithString(ctx, args[1]);
+            match (*cmd)(ctx, &[]) {
+                Ok(RedisValue::Integer(v)) => raw::RedisModule_ReplyWithLongLong(ctx, v),
+                Ok(RedisValue::String(s)) => unimplemented!(),
+                Ok(RedisValue::Array(v)) => unimplemented!(),
+                Err(RedisError::WrongArity) => raw::RedisModule_WrongArity(ctx),
+                Err(RedisError::String(s)) => {
+                    raw::RedisModule_ReplyWithError(ctx, s.as_ptr() as *const i8)
+                }
+            }
         }
     }
     assert!(std::mem::size_of::<F>() == 0);
     do_command::<F> as _
 }
 
-pub type RedisError = &'static str;
+
 pub type RedisResult = Result<RedisValue, RedisError>;
 
+#[derive(Debug)]
+pub enum RedisError {
+    WrongArity,
+    String(&'static str),
+}
 
 #[derive(Debug)]
 pub enum RedisValue {
     String(String),
-    Integer(isize),
+    Integer(i64),
     Array(Vec<RedisValue>),
 }
 
@@ -88,4 +99,3 @@ pub enum RedisValue {
 //     Error(String),
 //     WrongArity,
 // }
-
