@@ -1,20 +1,7 @@
 use raw;
 use RedisResult;
-pub struct Command<'a> {
+pub struct Command<'a,F: Fn(*mut raw::RedisModuleCtx, &[&str])-> RedisResult> {
     pub name: &'a str,
-    pub handler: fn(ctx: *mut raw::RedisModuleCtx,
-        argv: *mut *mut raw::RedisModuleString,
-        argc: ::std::os::raw::c_int)
-        -> raw::Status,
+    pub handler: F,
     pub flags: &'a str,
-}
-impl<'a> Command<'a> {
-    pub fn run(ctx: *mut raw::RedisModuleCtx,
-               argv: *mut *mut raw::RedisModuleString,
-               argc: ::std::os::raw::c_int)
-               -> raw::Status {
-
-
-        return raw::Status::Ok;
-    }
 }

@@ -155,7 +155,7 @@ impl Clone for RedisModuleBlockedClient {
         *self
     }
 }
-pub type RedisModuleCmdFunc =  fn(ctx: *mut RedisModuleCtx,
+pub type RedisModuleCmdFunc =  unsafe extern "C" fn(ctx: *mut RedisModuleCtx,
                                                    argv: *mut *mut RedisModuleString,
                                                    argc: c_int)
                                                    -> Status;
