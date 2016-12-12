@@ -8,7 +8,7 @@ pub enum RedisError {
 }
 
 #[derive(Debug)]
-pub enum RedisValue{
+pub enum RedisValue {
     String(&'static str),
     Integer(i64),
     Array(Vec<RedisValue>),
@@ -27,12 +27,13 @@ impl Context {
 #[derive(Debug)]
 pub struct RedisString {
     ctx: *mut raw::RedisModuleCtx,
-    inner: *mut raw::RedisModuleString,
+    pub inner: *mut raw::RedisModuleString,
 }
 
 impl RedisString {
-    fn create(ctx: *mut raw::RedisModuleCtx, s: &str) -> RedisString {
-        let inner = raw::create_string(ctx, format!("{}\0", s).as_ptr(), s.len());
+    pub fn new(ctx: *mut raw::RedisModuleCtx, s: &str) -> RedisString {
+        let inner =
+            raw::RedisModule_CreateString(ctx, format!("{}\0", s).as_ptr() as *const i8, s.len());
         RedisString {
             ctx: ctx,
             inner: inner,
@@ -42,6 +43,6 @@ impl RedisString {
 
 impl Drop for RedisString {
     fn drop(&mut self) {
-        raw::free_string(self.ctx, self.inner);
+        raw::RedisModule_FreeString(self.ctx, self.inner);
     }
 }

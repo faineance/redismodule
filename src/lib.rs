@@ -54,6 +54,7 @@ pub fn wrap_command<F: Fn(&Context, &[&str]) -> RedisResult>(command: F)
         unsafe {
             let cmd: *const F = std::mem::transmute(&());
             let args = slice::from_raw_parts(argv, argc as usize);
+            
             reply(ctx, (*cmd)(&Context::new(ctx), &[]))
         }
     }
@@ -66,12 +67,16 @@ pub fn wrap_command<F: Fn(&Context, &[&str]) -> RedisResult>(command: F)
 fn reply(ctx: *mut raw::RedisModuleCtx, r: RedisResult) -> raw::Status {
     match r {
         Ok(RedisValue::Integer(v)) => raw::RedisModule_ReplyWithLongLong(ctx, v),
-        Ok(RedisValue::String(s)) => raw::RedisModule_ReplyWithString,
+        Ok(RedisValue::String(s)) => {
+            raw::RedisModule_ReplyWithString(ctx, redis::RedisString::new(ctx, s).inner)
+        }
         Ok(RedisValue::Array(array)) => {
             raw::RedisModule_ReplyWithArray(ctx, array.len() as libc::c_long);
+
             for elem in array {
                 reply(ctx, Ok(elem));
             }
+
             return raw::Status::Ok;
         }
         Err(RedisError::WrongArity) => raw::RedisModule_WrongArity(ctx),

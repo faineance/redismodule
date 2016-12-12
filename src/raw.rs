@@ -180,7 +180,7 @@ extern "C" {
     static RedisModule_CallReplyArrayElement: extern "C" fn(reply: *mut RedisModuleCallReply,
                                                             idx: usize)
                                                             -> *mut RedisModuleCallReply;
-    static RedisModule_CreateString: extern "C" fn(ctx: *mut RedisModuleCtx,
+    pub static RedisModule_CreateString: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                    ptr: *const c_char,
                                                    len: usize)
                                                    -> *mut RedisModuleString;
@@ -194,7 +194,7 @@ extern "C" {
                                                          fmt: *const c_char,
                                                          ...)
                                                          -> *mut RedisModuleString;
-    static RedisModule_FreeString: extern "C" fn(ctx: *mut RedisModuleCtx,
+    pub static RedisModule_FreeString: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                  str: *mut RedisModuleString);
     static RedisModule_StringPtrLen: extern "C" fn(str: *const RedisModuleString, len: *mut usize)
                                                    -> *const c_char;
