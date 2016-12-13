@@ -12,6 +12,7 @@ pub enum RedisValue {
     String(&'static str),
     Integer(i64),
     Array(Vec<RedisValue>),
+    // Iter(stream)
 }
 
 pub struct Context {

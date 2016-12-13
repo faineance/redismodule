@@ -15,7 +15,7 @@ pub use redis::{RedisResult, RedisValue, RedisError, Context};
 pub mod raw;
 #[macro_export]
 macro_rules! redis_module (
-    ($name:expr,$module_version:expr, $commands:expr) => (
+    ($name:expr, $module_version:expr, $commands:expr) => (
 
         #[no_mangle]
         #[allow(non_snake_case)]
@@ -54,7 +54,7 @@ pub fn wrap_command<F: Fn(&Context, &[&str]) -> RedisResult>(command: F)
         unsafe {
             let cmd: *const F = std::mem::transmute(&());
             let args = slice::from_raw_parts(argv, argc as usize);
-            
+
             reply(ctx, (*cmd)(&Context::new(ctx), &[]))
         }
     }
@@ -79,6 +79,14 @@ fn reply(ctx: *mut raw::RedisModuleCtx, r: RedisResult) -> raw::Status {
 
             return raw::Status::Ok;
         }
+        // Ok(RedisValue::Iter(s)) => {
+        //     raw::RedisModule_ReplyWithArray(ctx, raw::POSTPONED_ARRAY_LEN1);
+        //     for elem in s {
+        //         reply(ctx, Ok(elem));
+        //     }
+        //
+        //
+        // }
         Err(RedisError::WrongArity) => raw::RedisModule_WrongArity(ctx),
         Err(RedisError::String(s)) => raw::RedisModule_ReplyWithError(ctx, s.as_ptr() as *const i8),
     }

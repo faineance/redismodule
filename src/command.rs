@@ -1,4 +1,4 @@
-use raw;
+
 use RedisResult;
 use redis::Context;
 pub struct Command<'a, F: Fn(&Context, &[&str]) -> RedisResult> {
