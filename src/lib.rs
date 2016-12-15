@@ -79,14 +79,6 @@ fn reply(ctx: *mut raw::RedisModuleCtx, r: RedisResult) -> raw::Status {
 
             return raw::Status::Ok;
         }
-        // Ok(RedisValue::Iter(s)) => {
-        //     raw::RedisModule_ReplyWithArray(ctx, raw::POSTPONED_ARRAY_LEN1);
-        //     for elem in s {
-        //         reply(ctx, Ok(elem));
-        //     }
-        //
-        //
-        // }
         Err(RedisError::WrongArity) => raw::RedisModule_WrongArity(ctx),
         Err(RedisError::String(s)) => raw::RedisModule_ReplyWithError(ctx, s.as_ptr() as *const i8),
     }
