@@ -21,21 +21,22 @@ fn wrong_arity(ctx: &Context, args: &[&str]) -> RedisResult {
 fn err_msg(ctx: &Context, args: &[&str]) -> RedisResult {
     Err(RedisError::String("sample text"))
 }
+
+
 redis_module!("example",
               1,
-              vec![Command {
-                       name: "array",
-                       handler: array,
-                       flags: "",
-                   },
-                   Command {
-                       name: "wrong_arity",
-                       handler: wrong_arity,
-                       flags: "",
-                   },
-                   Command {
-                       name: "err_msg",
-                       handler: err_msg,
-                       flags: "",
-                   }]);
-                   
+              [Command {
+                   name: "array",
+                   handler: array,
+                   flags: "",
+               },
+               Command {
+                   name: "wrong_arity",
+                   handler: wrong_arity,
+                   flags: "",
+               },
+               Command {
+                   name: "err_msg",
+                   handler: err_msg,
+                   flags: "",
+               }]);

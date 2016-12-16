@@ -19,6 +19,22 @@ bitflags! {
     }
 }
 
+bitflags! {
+    pub flags CommandFlags: &'static str {
+        const COMMAND_WRITE = "write",
+        const COMMAND_READONLY = "readonly",
+        const COMMAND_DENYOOM = "denyoom",
+        const COMMAND_ADMIN = "admin",
+        const COMMAND_PUBSUB = "pubsub",
+        const COMMAND_NOSCRIPT = "noscript",
+        const COMMAND_RANDOM = "random",
+        const COMMAND_SORT_FOR_SCRIPT = "sort_for_script",
+        const COMMAND_LOADING = "loading", 
+        const COMMAND_STALE = "admin",
+        const COMMAND_ADMIN = "admin",       
+    }
+}
+
 #[derive(Debug)]
 pub enum ListPos {
     Head = 0,
@@ -144,8 +160,9 @@ extern "C" {
                                                        apiver: c_int)
                                                        -> c_int;
     pub static RedisModule_WrongArity: extern "C" fn(ctx: *mut RedisModuleCtx) -> Status;
-    pub static RedisModule_ReplyWithLongLong: extern "C" fn(ctx: *mut RedisModuleCtx, ll: c_longlong)
-                                                        -> Status;
+    pub static RedisModule_ReplyWithLongLong: extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                            ll: c_longlong)
+                                                            -> Status;
     static RedisModule_GetSelectedDb: extern "C" fn(ctx: *mut RedisModuleCtx) -> c_int;
     static RedisModule_SelectDb: extern "C" fn(ctx: *mut RedisModuleCtx, newid: c_int) -> c_int;
     static RedisModule_OpenKey: extern "C" fn(ctx: *mut RedisModuleCtx,
@@ -181,9 +198,9 @@ extern "C" {
                                                             idx: usize)
                                                             -> *mut RedisModuleCallReply;
     pub static RedisModule_CreateString: extern "C" fn(ctx: *mut RedisModuleCtx,
-                                                   ptr: *const c_char,
-                                                   len: usize)
-                                                   -> *mut RedisModuleString;
+                                                       ptr: *const c_char,
+                                                       len: usize)
+                                                       -> *mut RedisModuleString;
     static RedisModule_CreateStringFromLongLong: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                                ll: c_longlong)
                                                                -> *mut RedisModuleString;
@@ -195,17 +212,19 @@ extern "C" {
                                                          ...)
                                                          -> *mut RedisModuleString;
     pub static RedisModule_FreeString: extern "C" fn(ctx: *mut RedisModuleCtx,
-                                                 str: *mut RedisModuleString);
+                                                     str: *mut RedisModuleString);
     static RedisModule_StringPtrLen: extern "C" fn(str: *const RedisModuleString, len: *mut usize)
                                                    -> *const c_char;
-    pub static RedisModule_ReplyWithError: extern "C" fn(ctx: *mut RedisModuleCtx, err: *const c_char)
-                                                     -> Status;
+    pub static RedisModule_ReplyWithError: extern "C" fn(ctx: *mut RedisModuleCtx,
+                                                         err: *const c_char)
+                                                         -> Status;
 
     static RedisModule_ReplyWithSimpleString: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                             msg: *const c_char)
                                                             -> Status;
 
-    pub static RedisModule_ReplyWithArray: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long) -> Status;
+    pub static RedisModule_ReplyWithArray: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long)
+                                                         -> Status;
 
 
     static RedisModule_ReplySetArrayLength: extern "C" fn(ctx: *mut RedisModuleCtx, len: c_long);

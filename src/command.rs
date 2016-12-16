@@ -1,8 +1,11 @@
 
 use RedisResult;
 use redis::Context;
-pub struct Command<'a, F: Fn(&Context, &[&str]) -> RedisResult> {
-    pub name: &'a str,
+
+
+pub struct Command< F: Fn(&Context, &[&str]) -> RedisResult> {
+    pub name: &'static str,
     pub handler: F,
-    pub flags: &'a str,
+    pub flags: &'static str,
 }
+
