@@ -12,7 +12,6 @@ pub enum RedisValue {
     String(&'static str),
     Integer(i64),
     Array(Vec<RedisValue>),
-
 }
 
 pub struct Context {
