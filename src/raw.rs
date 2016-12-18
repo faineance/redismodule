@@ -1,5 +1,4 @@
 #![allow(dead_code, non_camel_case_types, non_snake_case)]
-use std::fmt;
 use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;
 pub const REDISMODULE_APIVER_1: c_int = 1;
@@ -37,6 +36,7 @@ pub enum CommandFlag {
     Fast, 
     Movablekeys, 
 }
+
 fn command_flag_repr(flag: &CommandFlag) -> &'static str {
     match *flag {
         CommandFlag::Write => "write",

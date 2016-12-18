@@ -32,8 +32,11 @@ pub struct RedisString {
 
 impl RedisString {
     pub fn new(ctx: *mut raw::RedisModuleCtx, s: &str) -> RedisString {
-        let inner =
-            raw::RedisModule_CreateString(ctx, format!("{}\0", s).as_ptr() as *const i8, s.len());
+        let inner: *mut raw::RedisModuleString;
+        unsafe {
+            inner = raw::RedisModule_CreateString(ctx, format!("{}\0", s).as_ptr() as *const i8, s.len());
+        }
+            
         RedisString {
             ctx: ctx,
             inner: inner,
@@ -43,6 +46,9 @@ impl RedisString {
 
 impl Drop for RedisString {
     fn drop(&mut self) {
-        raw::RedisModule_FreeString(self.ctx, self.inner);
+        unsafe {
+            raw::RedisModule_FreeString(self.ctx, self.inner);
+        }
+        
     }
 }
