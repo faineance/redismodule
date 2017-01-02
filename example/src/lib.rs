@@ -23,20 +23,4 @@ fn err_msg(ctx: &Context, args: &[&str]) -> RedisResult {
 }
 
 
-redis_module!("example",
-              1,
-              [Command {
-                   name: "array",
-                   handler: array,
-                   flags: "",
-               },
-               Command {
-                   name: "wrong_arity",
-                   handler: wrong_arity,
-                   flags: "",
-               },
-               Command {
-                   name: "err_msg",
-                   handler: err_msg,
-                   flags: "",
-               }]);
+redis_module!("example", 1, [Command::new("array", array, "")]);

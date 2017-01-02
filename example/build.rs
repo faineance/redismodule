@@ -12,5 +12,4 @@ fn main() {
         .include("include/")
         .compile("libredismodule.a");
     // The GCC module emits `rustc-link-lib=static=redismodule` for us.
-
 }

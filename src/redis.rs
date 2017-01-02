@@ -1,4 +1,8 @@
 use raw;
+use std::slice;
+use std::str;
+use libc;
+
 pub type RedisResult = Result<RedisValue, RedisError>;
 
 #[derive(Debug)]
@@ -22,6 +26,32 @@ impl Context {
     pub fn new(ctx: *mut raw::RedisModuleCtx) -> Context {
         Context { ctx: ctx }
     }
+    pub fn reply(&mut self, r: RedisResult) -> raw::Status {
+        match r {
+            Ok(RedisValue::Integer(v)) => unsafe {
+                raw::RedisModule_ReplyWithLongLong(self.ctx, v)
+            },
+            Ok(RedisValue::String(s)) => {
+                unsafe {
+                    raw::RedisModule_ReplyWithString(self.ctx,
+                                                     RedisString::new(self.ctx, s).inner)
+                }
+            }
+            Ok(RedisValue::Array(array)) => {
+                unsafe { raw::RedisModule_ReplyWithArray(self.ctx, array.len() as libc::c_long) };
+
+                for elem in array {
+                    self.reply(Ok(elem));
+                }
+
+                return raw::Status::Ok;
+            }
+            Err(RedisError::WrongArity) => unsafe { raw::RedisModule_WrongArity(self.ctx) },
+            Err(RedisError::String(s)) => unsafe {
+                raw::RedisModule_ReplyWithError(self.ctx, s.as_ptr() as *const i8)
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -34,9 +64,11 @@ impl RedisString {
     pub fn new(ctx: *mut raw::RedisModuleCtx, s: &str) -> RedisString {
         let inner: *mut raw::RedisModuleString;
         unsafe {
-            inner = raw::RedisModule_CreateString(ctx, format!("{}\0", s).as_ptr() as *const i8, s.len());
+            inner = raw::RedisModule_CreateString(ctx,
+                                                  format!("{}\0", s).as_ptr() as *const i8,
+                                                  s.len());
         }
-            
+
         RedisString {
             ctx: ctx,
             inner: inner,
@@ -49,6 +81,6 @@ impl Drop for RedisString {
         unsafe {
             raw::RedisModule_FreeString(self.ctx, self.inner);
         }
-        
+
     }
 }

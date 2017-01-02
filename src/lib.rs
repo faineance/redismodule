@@ -2,13 +2,14 @@
 //!
 //! Write Redis modules in Rust.
 //!
+//! #![deny(missing_docs)]
 #![feature(untagged_unions)]
 #![feature(conservative_impl_trait)]
 #[macro_use]
 extern crate bitflags;
 extern crate libc;
 use std::slice;
-
+use std::str;
 pub mod command;
 pub mod redis;
 pub use redis::{RedisResult, RedisValue, RedisError, Context};
@@ -27,7 +28,7 @@ macro_rules! redis_module (
               for command in $commands.into_iter() {
                 if redismodule::raw::RedisModule_CreateCommand(ctx,
                                                             format!("{}\0", command.name).as_ptr() as *const i8,
-                                                            redismodule::wrap_command(command.handler),
+                                                            command.wrap_handler(),
                                                             format!("{}\0", command.flags).as_ptr() as *const i8,
                                                             1,
                                                             1,
@@ -40,46 +41,3 @@ macro_rules! redis_module (
         }
     )
 );
-
-
-
-pub fn wrap_command<F: Fn(&Context, &[&str]) -> RedisResult>(command: F)
-                                                             -> raw::RedisModuleCmdFunc {
-    // super funky
-    extern "C" fn do_command<F: Fn(&Context, &[&str]) -> RedisResult>
-        (ctx: *mut raw::RedisModuleCtx,
-         argv: *mut *mut raw::RedisModuleString,
-         argc: libc::c_int)
-         -> raw::Status {
-        unsafe {
-            let cmd: *const F = std::mem::transmute(&());
-            let args = slice::from_raw_parts(argv, argc as usize);
-
-            reply(ctx, (*cmd)(&Context::new(ctx), &[]))
-        }
-    }
-    assert!(std::mem::size_of::<F>() == 0);
-    do_command::<F> as _
-}
-
-
-
-fn reply(ctx: *mut raw::RedisModuleCtx, r: RedisResult) -> raw::Status {
-    match r {
-        Ok(RedisValue::Integer(v)) => unsafe { raw::RedisModule_ReplyWithLongLong(ctx, v) },
-        Ok(RedisValue::String(s)) => {
-            unsafe { raw::RedisModule_ReplyWithString(ctx, redis::RedisString::new(ctx, s).inner) }
-        }
-        Ok(RedisValue::Array(array)) => {
-            unsafe { raw::RedisModule_ReplyWithArray(ctx, array.len() as libc::c_long) };
-
-            for elem in array {
-                reply(ctx, Ok(elem));
-            }
-
-            return raw::Status::Ok;
-        }
-        Err(RedisError::WrongArity) => unsafe {raw::RedisModule_WrongArity(ctx) },
-        Err(RedisError::String(s)) => unsafe { raw::RedisModule_ReplyWithError(ctx, s.as_ptr() as *const i8) },
-    }
-}

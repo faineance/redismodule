@@ -14,4 +14,4 @@ redismodule = { path = "../../redismodule" }
 libc = "*"
 
 [build-dependencies]
- gcc = "*"
+gcc = "*"
