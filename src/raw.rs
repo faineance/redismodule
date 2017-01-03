@@ -245,7 +245,7 @@ extern "C" {
                                                          -> *mut RedisModuleString;
     pub static RedisModule_FreeString: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                      str: *mut RedisModuleString);
-    static RedisModule_StringPtrLen: extern "C" fn(str: *const RedisModuleString, len: *mut usize)
+    pub static RedisModule_StringPtrLen: extern "C" fn(str: *const RedisModuleString, len: *mut usize)
                                                    -> *const c_char;
     pub static RedisModule_ReplyWithError: extern "C" fn(ctx: *mut RedisModuleCtx,
                                                          err: *const c_char)

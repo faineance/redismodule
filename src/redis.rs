@@ -13,7 +13,7 @@ pub enum RedisError {
 
 #[derive(Debug)]
 pub enum RedisValue {
-    String(&'static str),
+    String(String),
     Integer(i64),
     Array(Vec<RedisValue>),
 }
@@ -33,7 +33,7 @@ impl Context {
             },
             Ok(RedisValue::String(s)) => {
                 unsafe {
-                    raw::RedisModule_ReplyWithString(self.ctx, RedisString::new(self.ctx, s).inner)
+                    raw::RedisModule_ReplyWithString(self.ctx, RedisString::new(self.ctx, s.as_ref()).inner)
                 }
             }
             Ok(RedisValue::Array(array)) => {
@@ -72,6 +72,18 @@ impl RedisString {
             ctx: ctx,
             inner: inner,
         }
+    }
+
+    // probably not the best naming, or interface
+    pub fn as_str<'a>(&self) -> Result<&'a str, str::Utf8Error> {
+        RedisString::from_ptr(self.inner)
+    }
+
+    pub fn from_ptr<'a>(ptr: *mut raw::RedisModuleString) -> Result<&'a str, str::Utf8Error> {
+        let mut len: libc::size_t = 0;
+        let bytes = raw::RedisModule_StringPtrLen(ptr, &mut len);
+
+        str::from_utf8(unsafe { slice::from_raw_parts(bytes as *const u8, len) })
     }
 }
 

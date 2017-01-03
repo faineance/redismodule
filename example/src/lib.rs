@@ -5,13 +5,15 @@ use redismodule::{RedisResult, RedisValue, RedisError, Context};
 use redismodule::command::Command;
 
 
-fn array(ctx: &Context, args: &[&str]) -> RedisResult {
-    return Ok(RedisValue::Array(vec![RedisValue::Integer(1),
-                                     RedisValue::String("asd"),
-                                     RedisValue::String("asd"),
-                                     RedisValue::String("asd"),
-                                     RedisValue::String("asd")]));
+fn array(ctx: &Context, args: Vec<String>) -> RedisResult {
 
+    let mut resp = vec![RedisValue::Integer(args.len() as i64)];
+    let resp_args: Vec<RedisValue> = args.into_iter()
+        .map(|s| RedisValue::String(s))
+        .collect();
+
+    resp.extend(resp_args);
+    return Ok(RedisValue::Array(resp));
 }
 
 // fn wrong_arity(ctx: &Context, args: &[&str]) -> RedisResult {
@@ -22,6 +24,4 @@ fn array(ctx: &Context, args: &[&str]) -> RedisResult {
 // }
 
 
-
 redis_module!("example", 1, [Command::new("array", array, "")]);
-

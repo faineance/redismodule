@@ -12,6 +12,7 @@ pub mod command;
 pub mod redis;
 pub use redis::{RedisResult, RedisValue, RedisError, Context};
 pub mod raw;
+
 #[macro_export]
 macro_rules! redis_module (
     ($name:expr, $module_version:expr, $commands:expr) => (
