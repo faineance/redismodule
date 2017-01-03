@@ -1,4 +1,4 @@
-#![allow(dead_code, non_camel_case_types, non_snake_case,useless_transmute)]
+#![allow(dead_code, non_camel_case_types, non_snake_case)]
 
 use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;

@@ -28,11 +28,13 @@ impl<F: Fn(&Context, &[&str]) -> RedisResult> Command<F> {
             unsafe {
                 let cmd: *const F = mem::transmute(&());
                 let args = slice::from_raw_parts(argv, argc as usize);
-
-                Context::new(ctx).reply((*cmd)(&Context::new(ctx), &[]))
+                let context = Context::new(ctx);
+                context.reply((*cmd)(&context, &[]))
             }
         }
         assert!(mem::size_of::<F>() == 0);
         do_command::<F> as _
     }
+
+    // fn parse_args() -> &[&str] {}
 }

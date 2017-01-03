@@ -26,7 +26,7 @@ impl Context {
     pub fn new(ctx: *mut raw::RedisModuleCtx) -> Context {
         Context { ctx: ctx }
     }
-    pub fn reply(&mut self, r: RedisResult) -> raw::Status {
+    pub fn reply(&self, r: RedisResult) -> raw::Status {
         match r {
             Ok(RedisValue::Integer(v)) => unsafe {
                 raw::RedisModule_ReplyWithLongLong(self.ctx, v)
