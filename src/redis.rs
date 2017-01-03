@@ -33,8 +33,7 @@ impl Context {
             },
             Ok(RedisValue::String(s)) => {
                 unsafe {
-                    raw::RedisModule_ReplyWithString(self.ctx,
-                                                     RedisString::new(self.ctx, s).inner)
+                    raw::RedisModule_ReplyWithString(self.ctx, RedisString::new(self.ctx, s).inner)
                 }
             }
             Ok(RedisValue::Array(array)) => {
@@ -44,7 +43,7 @@ impl Context {
                     self.reply(Ok(elem));
                 }
 
-                return raw::Status::Ok;
+                raw::Status::Ok
             }
             Err(RedisError::WrongArity) => unsafe { raw::RedisModule_WrongArity(self.ctx) },
             Err(RedisError::String(s)) => unsafe {

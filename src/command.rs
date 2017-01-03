@@ -18,8 +18,6 @@ impl<F: Fn(&Context, &[&str]) -> RedisResult> Command<F> {
             flags: flags,
         }
     }
-
-
     pub fn wrap_handler(&self) -> raw::RedisModuleCmdFunc {
         // super funky
         extern "C" fn do_command<F: Fn(&Context, &[&str]) -> RedisResult>
@@ -30,8 +28,8 @@ impl<F: Fn(&Context, &[&str]) -> RedisResult> Command<F> {
             unsafe {
                 let cmd: *const F = mem::transmute(&());
                 let args = slice::from_raw_parts(argv, argc as usize);
-                Context::new(ctx).reply((*cmd)(&Context::new(ctx), &[]))
 
+                Context::new(ctx).reply((*cmd)(&Context::new(ctx), &[]))
             }
         }
         assert!(mem::size_of::<F>() == 0);

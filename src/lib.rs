@@ -25,7 +25,7 @@ macro_rules! redis_module (
               if redismodule::raw::RedisModule_Init(ctx,format!("{}\0",$name).as_ptr() as *const i8, $module_version, redismodule::raw::REDISMODULE_APIVER_1) == redismodule::raw::Status::Err {
                   return redismodule::raw::Status::Err;
               }
-              for command in $commands.into_iter() {
+              for command in $commands {
                 if redismodule::raw::RedisModule_CreateCommand(ctx,
                                                             format!("{}\0", command.name).as_ptr() as *const i8,
                                                             command.wrap_handler(),

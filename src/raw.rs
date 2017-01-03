@@ -1,4 +1,5 @@
-#![allow(dead_code, non_camel_case_types, non_snake_case)]
+#![allow(dead_code, non_camel_case_types, non_snake_case,useless_transmute)]
+
 use libc::{c_int, c_uint, c_void, c_ulong, c_long, c_ulonglong, c_char, c_longlong};
 use std::f32;
 pub const REDISMODULE_APIVER_1: c_int = 1;
@@ -29,12 +30,12 @@ pub enum CommandFlag {
     Noscript,
     Random,
     SortForScript,
-    Loading, 
+    Loading,
     Stale,
-    SkipMonitor, 
-    Asking, 
-    Fast, 
-    Movablekeys, 
+    SkipMonitor,
+    Asking,
+    Fast,
+    Movablekeys,
 }
 
 fn command_flag_repr(flag: &CommandFlag) -> &'static str {
@@ -58,7 +59,7 @@ fn command_flag_repr(flag: &CommandFlag) -> &'static str {
 
 fn build_flag_string(flags: &[CommandFlag]) -> String {
     let mut string = String::new();
-    for flag in flags.into_iter() {
+    for flag in flags {
         string.push_str(command_flag_repr(flag))
     }
     string
@@ -518,6 +519,7 @@ pub extern "C" fn RedisModule_Init(ctx: *mut RedisModuleCtx,
                                    -> Status {
 
 
+
     unsafe {
         let RedisModule_GetApi: fn(arg1: *const c_char, arg2: *mut c_void) -> Status =
             mem::transmute(*(ctx as *mut *mut c_void));
@@ -621,7 +623,7 @@ pub extern "C" fn RedisModule_Init(ctx: *mut RedisModuleCtx,
         getapi!(RedisModule_StringCompare);
         getapi!(RedisModule_GetContextFromIO);
         RedisModule_SetModuleAttribs(ctx, name, ver, apiver);
-        return Status::Ok;
+        Status::Ok
     }
 }
 
