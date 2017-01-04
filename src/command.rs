@@ -7,7 +7,7 @@ use std::mem;
 use redis::RedisString;
 pub struct Command<F: Fn(&Context, Vec<String>) -> RedisResult> {
     pub name: &'static str,
-    pub handler: F,
+    pub handler: Box<F>,
     pub flags: &'static str,
 }
 
@@ -15,7 +15,7 @@ impl<F: Fn(&Context, Vec<String>) -> RedisResult> Command<F> {
     pub fn new(name: &'static str, handler: F, flags: &'static str) -> Command<F> {
         Command {
             name: name,
-            handler: handler,
+            handler: Box::new(handler),
             flags: flags,
         }
     }
@@ -27,7 +27,8 @@ impl<F: Fn(&Context, Vec<String>) -> RedisResult> Command<F> {
             argc: libc::c_int)
             -> raw::Status {
             unsafe {
-                let cmd: *const F = mem::transmute(&());
+                // let cmd: *const F = mem::transmute(&());
+                let cmd: *const F = &() as *const () as *const F;
                 let context = Context::new(ctx);
 
                 let args: Vec<String> = slice::from_raw_parts(argv, argc as usize)

@@ -33,7 +33,8 @@ impl Context {
             },
             Ok(RedisValue::String(s)) => {
                 unsafe {
-                    raw::RedisModule_ReplyWithString(self.ctx, RedisString::new(self.ctx, s.as_ref()).inner)
+                    raw::RedisModule_ReplyWithString(self.ctx,
+                                                     RedisString::new(self.ctx, s.as_ref()).inner)
                 }
             }
             Ok(RedisValue::Array(array)) => {
@@ -81,7 +82,7 @@ impl RedisString {
 
     pub fn from_ptr<'a>(ptr: *mut raw::RedisModuleString) -> Result<&'a str, str::Utf8Error> {
         let mut len: libc::size_t = 0;
-        let bytes = raw::RedisModule_StringPtrLen(ptr, &mut len);
+        let bytes = unsafe { raw::RedisModule_StringPtrLen(ptr, &mut len) };
 
         str::from_utf8(unsafe { slice::from_raw_parts(bytes as *const u8, len) })
     }
