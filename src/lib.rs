@@ -16,26 +16,26 @@ pub mod raw;
 #[macro_export]
 macro_rules! redis_module (
     ($name:expr, $module_version:expr, $commands:expr) => (
-
+        use redismodule::raw;
         #[no_mangle]
         #[allow(non_snake_case)]
-        pub extern "C" fn RedisModule_OnLoad(ctx: *mut redismodule::raw::RedisModuleCtx) -> redismodule::raw::Status {
+        pub extern "C" fn RedisModule_OnLoad(ctx: *mut raw::RedisModuleCtx) -> raw::Status {
             unsafe {
-              if redismodule::raw::RedisModule_Init(ctx,format!("{}\0",$name).as_ptr() as *const i8, $module_version, redismodule::raw::REDISMODULE_APIVER_1) == redismodule::raw::Status::Err {
-                  return redismodule::raw::Status::Err;
+              if raw::RedisModule_Init(ctx,format!("{}\0",$name).as_ptr() as *const i8, $module_version, raw::REDISMODULE_APIVER_1) == raw::Status::Err {
+                  return raw::Status::Err;
               }
-              for command in $commands.into_iter() {
-                if redismodule::raw::RedisModule_CreateCommand(ctx,
+              for command in &$commands {
+                if raw::RedisModule_CreateCommand(ctx,
                                                             format!("{}\0", command.name).as_ptr() as *const i8,
                                                             command.wrap_handler(),
                                                             format!("{}\0", command.flags).as_ptr() as *const i8,
                                                             1,
                                                             1,
-                                                            1) == redismodule::raw::Status::Err {
-                    return redismodule::raw::Status::Err;
+                                                            1) == raw::Status::Err {
+                    return raw::Status::Err;
                 }
               }
-              return redismodule::raw::Status::Ok;
+             raw::Status::Ok
             }
         }
     )

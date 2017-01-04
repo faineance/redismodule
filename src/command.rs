@@ -7,7 +7,7 @@ use std::mem;
 use redis::RedisString;
 pub struct Command<F: Fn(&Context, Vec<String>) -> RedisResult> {
     pub name: &'static str,
-    pub handler: Box<F>,
+    pub handler: F,
     pub flags: &'static str,
 }
 
@@ -15,7 +15,7 @@ impl<F: Fn(&Context, Vec<String>) -> RedisResult> Command<F> {
     pub fn new(name: &'static str, handler: F, flags: &'static str) -> Command<F> {
         Command {
             name: name,
-            handler: Box::new(handler),
+            handler: handler,
             flags: flags,
         }
     }
@@ -27,13 +27,13 @@ impl<F: Fn(&Context, Vec<String>) -> RedisResult> Command<F> {
             argc: libc::c_int)
             -> raw::Status {
             unsafe {
-                // let cmd: *const F = mem::transmute(&());
+                // let cmd: *const F = mem::transmute(&()); // hehe
                 let cmd: *const F = &() as *const () as *const F;
                 let context = Context::new(ctx);
 
                 let args: Vec<String> = slice::from_raw_parts(argv, argc as usize)
                     .into_iter()
-                    .map(|a| RedisString::from_ptr(*a).unwrap().to_string())
+                    .map(|a| RedisString::from_ptr(*a).expect("UTF8 encoding error in handler args").to_string())
                     .collect();
 
                 context.reply((*cmd)(&context, args))

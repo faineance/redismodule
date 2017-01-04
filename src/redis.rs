@@ -68,7 +68,6 @@ impl RedisString {
                                                   format!("{}\0", s).as_ptr() as *const i8,
                                                   s.len());
         }
-
         RedisString {
             ctx: ctx,
             inner: inner,
