@@ -27,8 +27,8 @@ impl<F: Fn(&Context, Vec<String>) -> RedisResult> Command<F> {
             argc: libc::c_int)
             -> raw::Status {
             unsafe {
-                // let cmd: *const F = mem::transmute(&()); // hehe
                 let cmd: *const F = &() as *const () as *const F;
+                // let cmd: *const F = mem::transmute(&()); // equiv  ^^
                 let context = Context::new(ctx);
 
                 let args: Vec<String> = slice::from_raw_parts(argv, argc as usize)

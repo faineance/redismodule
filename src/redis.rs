@@ -26,6 +26,15 @@ impl Context {
     pub fn new(ctx: *mut raw::RedisModuleCtx) -> Context {
         Context { ctx: ctx }
     }
+
+
+    pub fn call(&self, command: &str, args: &[&str]) -> RedisResult {
+        let terminated_args: Vec<RedisString> = args.iter()
+            .map(|s| RedisString::new(self.ctx, s))
+            .collect();
+
+        return Err(RedisError::String("not implemented"));
+    }
     pub fn reply(&self, r: RedisResult) -> raw::Status {
         match r {
             Ok(RedisValue::Integer(v)) => unsafe {
@@ -62,15 +71,13 @@ pub struct RedisString {
 
 impl RedisString {
     pub fn new(ctx: *mut raw::RedisModuleCtx, s: &str) -> RedisString {
-        let inner: *mut raw::RedisModuleString;
-        unsafe {
-            inner = raw::RedisModule_CreateString(ctx,
-                                                  format!("{}\0", s).as_ptr() as *const i8,
-                                                  s.len());
-        }
         RedisString {
             ctx: ctx,
-            inner: inner,
+            inner: unsafe {
+                raw::RedisModule_CreateString(ctx,
+                                              format!("{}\0", s).as_ptr() as *const i8,
+                                              s.len())
+            },
         }
     }
 

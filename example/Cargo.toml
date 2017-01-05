@@ -9,9 +9,11 @@ name = "example"
 crate-type = ["dylib"] 
 
 
+
 [dependencies]
 redismodule = { path = "../../redismodule" }
 libc = "*"
 
 [build-dependencies]
 gcc = "*"
+

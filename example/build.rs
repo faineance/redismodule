@@ -5,8 +5,7 @@ fn main() {
     // against while building Rust code.
     //
     // include/redismodule.h is just vendored in from the Redis project and
-    // src/redismodule.c is just a stub that includes it and plays a few other
-    // tricks that we need to complete the build.
+    // src/redismodule.c is just a stub that includes it/
     gcc::Config::new()
         .file("src/redismodule.c")
         .include("include/")
